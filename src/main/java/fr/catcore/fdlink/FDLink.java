@@ -11,7 +11,6 @@ import fr.catcore.fdlink.config.ConfigHandler;
 import fr.catcore.fdlink.discord.bot.DiscordBot;
 import fr.catcore.fdlink.discord.webhook.DiscordWebhook;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.text.BaseText;
 import net.minecraft.text.Text;
@@ -97,10 +96,10 @@ public class FDLink implements DedicatedServerModInitializer {
             server.sendMessageToAll(new MessagePacketCompat(literalText, MessagePacket.MessageType.CHAT, UUID.randomUUID()));
         });
 
-        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> FDLink.getMessageSender().serverStarting());
-        ServerLifecycleEvents.SERVER_STARTED.register((server -> FDLink.getMessageSender().serverStarted()));
-        ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> FDLink.getMessageSender().serverStopping());
-        ServerLifecycleEvents.SERVER_STOPPED.register((server -> FDLink.getMessageSender().serverStopped()));
+        //ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> FDLink.getMessageSender().serverStarting());
+        //ServerLifecycleEvents.SERVER_STARTED.register((server -> FDLink.getMessageSender().serverStarted()));
+        //ServerLifecycleEvents.SERVER_STOPPING.register(minecraftServer -> FDLink.getMessageSender().serverStopping());
+        //ServerLifecycleEvents.SERVER_STOPPED.register((server -> FDLink.getMessageSender().serverStopped()));
 
     }
 

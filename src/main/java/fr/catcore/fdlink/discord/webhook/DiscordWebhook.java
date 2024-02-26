@@ -52,6 +52,12 @@ public class DiscordWebhook implements MessageSender {
         builder.setAllowedMentions(this.allowedMentions);
 
         if (author != null) {
+
+            //builder.setAvatarUrl("https://crafatar.com/avatars/" + author + "?&overlay");
+            // ^^ doesn't work
+
+            builder.setAvatarUrl("https://mc-heads.net/avatar/" + author + "/160");
+
             try {
                 if (FDLink.getMessageReceiver() != null && FDLink.getMessageReceiver().getServer() != null) {
                     MinecraftServerCompat minecraftServer = FDLink.getMessageReceiver().getServer();
@@ -63,9 +69,7 @@ public class DiscordWebhook implements MessageSender {
                 builder.setUsername("Could not get player username");
             }
 
-            System.out.println(author);
 
-            builder.setAvatarUrl("https://crafatar.com/avatars/" + author + "?&overlay");
         }
 
         builder.setContent(message);

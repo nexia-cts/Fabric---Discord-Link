@@ -28,7 +28,7 @@
     "fabricloader": ">=0.14.21",
     "fabric": "*",
     "minecraft": "1.16.x",
-    "java": ">=8"
+    "java": ">=17"
   },
 
   "authors": [
