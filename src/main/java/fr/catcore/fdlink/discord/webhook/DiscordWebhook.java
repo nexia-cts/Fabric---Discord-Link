@@ -7,9 +7,13 @@ import club.minnced.discord.webhook.send.AllowedMentions;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import fr.catcore.fdlink.FDLink;
 import fr.catcore.fdlink.api.config.Config;
+import fr.catcore.fdlink.api.discord.MessageHandler;
 import fr.catcore.fdlink.api.discord.MessageSender;
+import fr.catcore.fdlink.api.discord.MinecraftMessage;
+import fr.catcore.fdlink.api.minecraft.Message;
+import fr.catcore.fdlink.api.minecraft.PlayerEntity;
+import fr.catcore.fdlink.api.minecraft.compat.MinecraftServerCompat;
 import fr.catcore.fdlink.discord.bot.DiscordBot;
-import net.minecraft.server.MinecraftServer;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import org.jetbrains.annotations.NotNull;
@@ -50,14 +54,17 @@ public class DiscordWebhook implements MessageSender {
         if (author != null) {
             try {
                 if (FDLink.getMessageReceiver() != null && FDLink.getMessageReceiver().getServer() != null) {
-                    MinecraftServer minecraftServer = FDLink.getMessageReceiver().getServer();
-                    builder.setUsername(minecraftServer.getPlayerManager().getPlayer(author).getEntityName());
+                    MinecraftServerCompat minecraftServer = FDLink.getMessageReceiver().getServer();
+                    builder.setUsername(minecraftServer.getUsernameFromUUID(author));
                 } else {
                     builder.setUsername("Could not get player username");
                 }
             } catch (NullPointerException e) {
                 builder.setUsername("Could not get player username");
             }
+
+            System.out.println(author);
+
             builder.setAvatarUrl("https://crafatar.com/avatars/" + author + "?&overlay");
         }
 
@@ -85,18 +92,13 @@ public class DiscordWebhook implements MessageSender {
     @Override
     public void serverStopped() {
         if (this.config.mainConfig.minecraftToDiscord.chatChannels.serverStopMessage) this.sendMessage(null, this.config.messageConfig.minecraftToDiscord.serverStopped)
-                .thenRun(new Runnable() {
-                    @Override
-                    public void run() {
-                        DiscordWebhook.this.webhookClient.close();
-                    }
-                });
+                .thenRun(() -> DiscordWebhook.this.webhookClient.close());
         else this.webhookClient.close();
         if (this.messageReader != null) this.messageReader.serverStopped();
     }
 
     @Override
-    public void sendMessage(fr.arthurbambou.fdlink.api.minecraft.Message message) {
+    public void sendMessage(Message message) {
         if (this.messageReader != null && this.messageReader.minecraftToDiscordHandler != null
                 && this.webhookClient != null && this.config != null) {
             MinecraftMessage minecraftMessage = this.messageReader.minecraftToDiscordHandler.handleText(message);
@@ -135,8 +137,7 @@ public class DiscordWebhook implements MessageSender {
 
     private UUID getPlayerUUIDFromText(Object arg) {
         String playerName = "";
-        if (arg instanceof Message) {
-            Message message = (Message) arg;
+        if (arg instanceof Message message) {
             if (message.getSibblings().isEmpty()) {
                 playerName = message.getMessage();
             } else if (message.getSibblings().size() == 3) {
@@ -149,12 +150,12 @@ public class DiscordWebhook implements MessageSender {
         }
         try {
             if (!playerName.isEmpty() && FDLink.getMessageReceiver() != null && FDLink.getMessageReceiver().getServer() != null) {
-                MinecraftServer minecraftServer = FDLink.getMessageReceiver().getServer();
+                MinecraftServerCompat minecraftServer = FDLink.getMessageReceiver().getServer();
                 PlayerEntity playerEntity = minecraftServer.getPlayerFromUsername(playerName);
                 return playerEntity.getUUID();
             }
-        } catch (NullPointerException ignored) {
-            ignored.printStackTrace();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
 
         return null;

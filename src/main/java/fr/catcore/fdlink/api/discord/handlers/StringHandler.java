@@ -1,7 +1,7 @@
 package fr.catcore.fdlink.api.discord.handlers;
 
-import fr.arthurbambou.fdlink.api.discord.MinecraftToDiscordFunction;
-import fr.arthurbambou.fdlink.api.minecraft.Message;
+import fr.catcore.fdlink.api.discord.MinecraftToDiscordFunction;
+import fr.catcore.fdlink.api.minecraft.Message;
 
 public class StringHandler extends MessageHandler {
 

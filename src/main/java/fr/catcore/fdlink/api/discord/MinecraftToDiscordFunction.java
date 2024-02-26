@@ -1,7 +1,7 @@
 package fr.catcore.fdlink.api.discord;
 
-import com.mojang.brigadier.Message;
 import fr.catcore.fdlink.api.config.Config;
+import fr.catcore.fdlink.api.minecraft.Message;
 
 public interface MinecraftToDiscordFunction {
 

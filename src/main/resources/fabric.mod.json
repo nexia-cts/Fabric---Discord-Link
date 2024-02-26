@@ -13,20 +13,20 @@
   },
 
   "license": "MIT",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/fdlink/icon.png",
 
   "environment": "server",
   "entrypoints": {
-    "main": [
-      
+    "server": [
+      "fr.catcore.fdlink.FDLink"
     ]
   },
   "mixins": [
+    "fdlink.mixins.json"
   ],
-
   "depends": {
     "fabricloader": ">=0.14.21",
-    "fabric-api": "*",
+    "fabric": "*",
     "minecraft": "1.16.x",
     "java": ">=8"
   },

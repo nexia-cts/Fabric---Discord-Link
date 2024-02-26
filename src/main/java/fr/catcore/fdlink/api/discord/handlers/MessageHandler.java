@@ -3,7 +3,7 @@ package fr.catcore.fdlink.api.discord.handlers;
 import fr.catcore.fdlink.api.config.Config;
 import fr.catcore.fdlink.api.discord.MinecraftMessage;
 import fr.catcore.fdlink.api.discord.MinecraftToDiscordFunction;
-import net.minecraft.text.TranslatableText;
+import fr.catcore.fdlink.api.minecraft.Message;
 
 public abstract class MessageHandler {
     private final MinecraftToDiscordFunction minecraftToDiscordFunction;
@@ -12,9 +12,9 @@ public abstract class MessageHandler {
         this.minecraftToDiscordFunction = minecraftToDiscordFunction;
     }
 
-    public MinecraftMessage handle(TranslatableText text, Config config) {
+    public MinecraftMessage handle(Message text, Config config) {
         return this.minecraftToDiscordFunction.handleText(text, config);
     }
 
-    public abstract boolean match(TranslatableText message);
+    public abstract boolean match(Message message);
 }

@@ -5,18 +5,22 @@ import fr.catcore.fdlink.FDLink;
 import fr.catcore.fdlink.api.config.Config;
 import fr.catcore.fdlink.api.config.MainConfig;
 import fr.catcore.fdlink.api.discord.MessageSender;
+import fr.catcore.fdlink.api.discord.MinecraftMessage;
+import fr.catcore.fdlink.api.minecraft.VersionHelper;
+import fr.catcore.fdlink.api.minecraft.compat.MinecraftServerCompat;
+import fr.catcore.fdlink.api.minecraft.style.ClickEvent;
+import fr.catcore.fdlink.api.minecraft.style.Style;
 import fr.catcore.fdlink.discord.minecraft.MinecraftToDiscordHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.LiteralText;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
-import javax.security.auth.login.LoginException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -24,16 +28,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class DiscordBot implements MessageSender {
     private MessageReceivedListener messageCreateListener;
-    protected MinecraftToDiscordHandler minecraftToDiscordHandler = null;
+    public MinecraftToDiscordHandler minecraftToDiscordHandler = null;
 
-    protected Config config;
+    public Config config;
     public boolean hasChatChannels;
     public boolean hasLogChannels;
     protected MessageReceivedEvent messageCreateEvent;
     protected boolean hasReceivedMessage;
     public String lastMessageD;
     protected static List<String> lastMessageMs = new ArrayList<>();
-    protected JDA api = null;
+    public JDA api = null;
     protected long startTime;
     protected boolean stopping = false;
     // This is when we scheduled the next channel topic update. Should happen every five minutes.
@@ -42,7 +46,7 @@ public class DiscordBot implements MessageSender {
     private boolean firstTick = true;
     private boolean updatedActivity = false;
 
-    protected MinecraftServer server;
+    protected MinecraftServerCompat server;
 
     public DiscordBot(String token, Config config) {
         this.lastMessageD = "null";
@@ -70,7 +74,10 @@ public class DiscordBot implements MessageSender {
         config.mainConfig.logChannels.removeIf(id -> config.mainConfig.chatChannels.contains(id));
 
         this.config = config;
-        this.api = JDABuilder.createDefault(token).setActivity(Activity.playing("Minecraft")).build();
+        this.api = JDABuilder.createDefault(token).setActivity(Activity.playing("Minecraft"))
+                .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES)
+                .setActivity(Activity.playing("Minecraft"))
+                .build();
         this.messageCreateListener = new MessageReceivedListener(this);
         this.api.addEventListener(messageCreateListener);
         this.minecraftToDiscordHandler = new MinecraftToDiscordHandler(this);
@@ -118,18 +125,18 @@ public class DiscordBot implements MessageSender {
         this.api.shutdownNow();
     }
 
-    public void serverTick(MinecraftServer server) {
+    public void serverTick(MinecraftServerCompat server) {
         if (this.api == null) return;
         this.server = server;
         if (this.server == null) return;
-        int playerNumber = server.getPlayerManager().getCurrentPlayerCount();
+        int playerNumber = server.getPlayerCount();
         int maxPlayer = server.getMaxPlayerCount();
         int totalUptimeSeconds = (int) (System.currentTimeMillis() - this.startTime) / 1000;
         final int uptimeD = totalUptimeSeconds / 86400;
         final int uptimeH = (totalUptimeSeconds % 86400) / 3600;
         final int uptimeM = (totalUptimeSeconds % 3600) / 60;
         final int uptimeS = totalUptimeSeconds % 60;
-        String ip = server.getServerIp();
+        String ip = server.getIp();
         if (this.updatedActivity) this.updatedActivity = ((int)(System.currentTimeMillis()/1000) % this.config.mainConfig.activityUpdateInterval) == 0;
         if ((((int)(System.currentTimeMillis()/1000) % this.config.mainConfig.activityUpdateInterval) == 0 && !this.updatedActivity) || this.firstTick) {
             String[] possibleActivities = this.config.messageConfig.discord.botActivities;
@@ -173,11 +180,7 @@ public class DiscordBot implements MessageSender {
                 }
                 if (this.config.mainConfig.minecraftToDiscord.chatChannels.minecraftToDiscordTag || this.config.mainConfig.minecraftToDiscord.logChannels.minecraftToDiscordTag) {
                     for (User user : this.api.getUserCache()) {
-                        String string_discriminator = "";
-                        if (this.config.mainConfig.minecraftToDiscord.chatChannels.minecraftToDiscordDiscriminator || this.config.mainConfig.minecraftToDiscord.logChannels.minecraftToDiscordDiscriminator){
-                            string_discriminator = "#" + user.getGlobalName();
-                        }
-                        replyString_message = replyString_message.replace("<@!" + user.getId() + ">", "@" + user.getName() + string_discriminator);
+                        replyString_message = replyString_message.replace("<@!" + user.getId() + ">", "@" + user.getGlobalName());
                     }
                 }
                 this.lastMessageD = this.lastMessageD.replace("%replyMessage", replyMessage.getContentRaw());
@@ -192,17 +195,7 @@ public class DiscordBot implements MessageSender {
             }
             if (this.config.mainConfig.minecraftToDiscord.chatChannels.minecraftToDiscordTag || this.config.mainConfig.minecraftToDiscord.logChannels.minecraftToDiscordTag) {
                 for (User user : this.api.getUserCache()) {
-//                    TextChannel serverChannel = (TextChannel) this.api.getTextChannels().toArray()[0];
-//                    Guild discordServer = serverChannel.getGuild();
-                    String string_discriminator = "";
-                    if (this.config.mainConfig.minecraftToDiscord.chatChannels.minecraftToDiscordDiscriminator || this.config.mainConfig.minecraftToDiscord.logChannels.minecraftToDiscordDiscriminator){
-                        string_discriminator = "#" + user.getDiscriminator();
-                    }
-                    string_message = string_message.replace("<@!" + user.getId() + ">", "@" + user.getName() + string_discriminator);
-
-//                        if (user.(discordServer).isPresent() && this.config.discordToMinecraft.pingLongVersion) {
-//                            string_message = string_message.replace("@" + user.getName(), "@" + user.getDisplayName(discordServer) + "(" + user.getName() + string_discriminator + ")");
-//                        }
+                    string_message = string_message.replace("<@!" + user.getId() + ">", "@" + user.getName());
                 }
             }
             Style style = Style.EMPTY;
@@ -213,7 +206,6 @@ public class DiscordBot implements MessageSender {
                 this.lastMessageD = this.lastMessageD.replace("%message", string_message);
             }
             VersionHelper.sendMessageToChat(server, this.lastMessageD, style);
-            server.send
 
             FDLink.MESSAGE_LOGGER.info(this.lastMessageD);
 
@@ -255,13 +247,13 @@ public class DiscordBot implements MessageSender {
                 channel.getManager().setTopic(topic).queue();
             }
             catch (InsufficientPermissionException e) {
-                FDLink.LOGGER.error(String.format("Failed to set the channel topic for channel %s. Check that the bot has the <Manage Channels> permission, or else disable custom channel descriptions.", channelId), e);
+                FDLink.LOGGER.severe(String.format("Failed to set the channel topic for channel %s. Check that the bot has the <Manage Channels> permission, or else disable custom channel descriptions.", channelId));
             }
         }
     }
 
     @Override
-    public void sendMessage(LiteralText message) {
+    public void sendMessage(fr.catcore.fdlink.api.minecraft.Message message) {
         if (this.minecraftToDiscordHandler != null && !this.stopping) {
             MinecraftMessage minecraftMessage = this.minecraftToDiscordHandler.handleText(message);
             if (minecraftMessage != null) {
@@ -289,6 +281,7 @@ public class DiscordBot implements MessageSender {
             }
         }
     }
+
 
 /*     public List<CompletableFuture<Message>> sendToAllChannels(String message) {
         List<CompletableFuture<Message>> requests = new ArrayList<>();
@@ -325,7 +318,7 @@ public class DiscordBot implements MessageSender {
                     list.add(channel.sendMessage(message).submit());
                     lastMessageMs.add(message);
                 } catch (InsufficientPermissionException e) {
-                    FDLink.LOGGER.error("Unable to send message in log channel due to lack of permission: " + e.fillInStackTrace());
+                    FDLink.LOGGER.severe("Unable to send message in log channel due to lack of permission: " + e.fillInStackTrace());
                 }
             }
         }
@@ -348,14 +341,14 @@ public class DiscordBot implements MessageSender {
                     list.add(channel.sendMessage(message).submit());
                     lastMessageMs.add(message);
                 } catch (InsufficientPermissionException e) {
-                    FDLink.LOGGER.error("Unable to send message in chat channel due to lack of permission: " + e.fillInStackTrace());
+                    FDLink.LOGGER.severe("Unable to send message in chat channel due to lack of permission: " + e.fillInStackTrace());
                 }
             }
         }
         return list;
     }
 
-    public MinecraftServer getServer() {
+    public MinecraftServerCompat getServer() {
         return server;
     }
 }

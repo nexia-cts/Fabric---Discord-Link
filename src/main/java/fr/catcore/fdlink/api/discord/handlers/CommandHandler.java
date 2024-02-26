@@ -1,6 +1,7 @@
 package fr.catcore.fdlink.api.discord.handlers;
 
 import fr.catcore.fdlink.api.discord.MinecraftToDiscordFunction;
+import fr.catcore.fdlink.api.minecraft.Message;
 
 public class CommandHandler extends MessageHandler {
     private final String commandName;

@@ -1,16 +1,19 @@
 package fr.catcore.fdlink.discord.minecraft;
 
+import fr.catcore.fdlink.FDLink;
 import fr.catcore.fdlink.api.config.Config;
 import fr.catcore.fdlink.api.config.MainConfig;
 import fr.catcore.fdlink.api.discord.MessageHandler;
 import fr.catcore.fdlink.api.discord.MinecraftMessage;
+import fr.catcore.fdlink.api.discord.handlers.CommandHandler;
+import fr.catcore.fdlink.api.discord.handlers.StringHandler;
 import fr.catcore.fdlink.api.discord.handlers.TextHandler;
+import fr.catcore.fdlink.api.minecraft.Message;
 import fr.catcore.fdlink.discord.bot.DiscordBot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.minecraft.text.LiteralText;
 
 public final class MinecraftToDiscordHandler implements MessageHandler {
 
@@ -31,8 +34,7 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
             String teamPrefix = "";
             String teamSuffix = "";
             String playerName = "";
-            if (arg1 instanceof fr.arthurbambou.fdlink.api.minecraft.Message) {
-                fr.arthurbambou.fdlink.api.minecraft.Message argMessage = (fr.arthurbambou.fdlink.api.minecraft.Message) arg1;
+            if (arg1 instanceof Message argMessage) {
                 if (argMessage.getSibblings().isEmpty()) {
                     playerName = argMessage.getMessage().replaceAll("§[b0931825467adcfeklmnor]", "");
                 } else if (argMessage.getSibblings().size() == 3) {
@@ -46,8 +48,8 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
             String message = getArgAsString(text.getArgs()[1]).replaceAll("§[b0931825467adcfeklmnor]", "");
             String chatMessage = text.getMessage().replaceAll("§[b0931825467adcfeklmnor]", "");
             String logMessage = text.getMessage().replaceAll("§[b0931825467adcfeklmnor]", "");
-            String chatPlayerName = "";
-            String logPlayerName = "";
+            String chatPlayerName;
+            String logPlayerName;
             String chatCompleteMessage;
             String logCompleteMessage;
             if (config.mainConfig.minecraftToDiscord.chatChannels.allowDiscordCommands && message.startsWith(config.mainConfig.minecraftToDiscord.chatChannels.commandPrefix)){
@@ -258,11 +260,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%advancement", getArgAsString(text.getArgs()[1]));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.advancementMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.advancementMessages
             ));
-            return minecraftMessage;
         }));
 
         // Advancement challenge
@@ -273,11 +274,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%advancement", getArgAsString(text.getArgs()[1]));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.challengeMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.challengeMessages
             ));
-            return minecraftMessage;
         }));
 
         // Advancement goal
@@ -288,11 +288,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%advancement", getArgAsString(text.getArgs()[1]));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.goalMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.goalMessages
             ));
-            return minecraftMessage;
         }));
 
         // Admin commands
@@ -303,11 +302,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%author", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%message", getArgAsString(text.getArgs()[1]));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.adminMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.adminMessages
             ));
-            return minecraftMessage;
         }));
 
         // Player join server with new username
@@ -318,11 +316,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%new", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%old", adaptUsernameToDiscord(getArgAsString(text.getArgs()[1])));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.joinAndLeaveMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.joinAndLeaveMessages
             ));
-            return minecraftMessage;
         }));
 
         // Player join server
@@ -332,11 +329,10 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                 message = this.config.messageConfig.minecraftToDiscord.playerJoined.customMessage
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.joinAndLeaveMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.joinAndLeaveMessages
             ));
-            return minecraftMessage;
         }));
 
         // Player leave server
@@ -346,24 +342,22 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                 message = this.config.messageConfig.minecraftToDiscord.playerLeft.customMessage
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.joinAndLeaveMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.joinAndLeaveMessages
             ));
-            return minecraftMessage;
         }));
 
         // Death messages
         MessageHandler.registerHandler(new TextHandler("death.", (text, config) -> {
             String message = text.getMessage().replaceAll("§[b0931825467adcfeklmnor]", "");
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(
                     this.config.messageConfig.minecraftToDiscord.deathMsgPrefix
                             + message
                             + this.config.messageConfig.minecraftToDiscord.deathMsgPostfix,
                     config.mainConfig.minecraftToDiscord.chatChannels.deathMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.deathMessages
             ));
-            return minecraftMessage;
         }));
 
         MessageHandler.registerHandler(new CommandHandler("tellraw", (text, config) -> {
@@ -401,40 +395,38 @@ public final class MinecraftToDiscordHandler implements MessageHandler {
                         .replace("%player", adaptUsernameToDiscord(getArgAsString(text.getArgs()[0])))
                         .replace("%achievement", getArgAsString(text.getArgs()[1]));
             }
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(message,
                     config.mainConfig.minecraftToDiscord.chatChannels.achievementMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.achievementMessages
             ));
-            return minecraftMessage;
         }));
 
         // Old versions
         MessageHandler.registerHandler(new StringHandler((message, config) -> {
             String text = message.getMessage().replaceAll("§[b0931825467adcfeklmnor]","");
-            MinecraftMessage minecraftMessage = new MinecraftMessage(new MinecraftMessage.MessageSendability(text,
+            return new MinecraftMessage(new MinecraftMessage.MessageSendability(text,
                     config.mainConfig.minecraftToDiscord.chatChannels.playerMessages,
                     config.mainConfig.minecraftToDiscord.logChannels.playerMessages
             ));
-            return minecraftMessage;
         }));
     }
 
     @Override
-    public MinecraftMessage handleText(LiteralText text) {
+    public MinecraftMessage handleText(Message text) {
         if (this.api == null || (!this.discordBot.hasChatChannels && !this.discordBot.hasLogChannels && this.config.mainConfig.webhook.url.isEmpty())) return null;
         Message.MessageObjectType objectType = text.getType();
         String message = text.getMessage();
         if (message.equals(this.discordBot.lastMessageD)) return null;
-        for (fr.arthurbambou.fdlink.api.discord.handlers.MessageHandler messageHandler : TEXT_HANDLERS) {
+        for (fr.catcore.fdlink.api.discord.handlers.MessageHandler messageHandler : TEXT_HANDLERS) {
             if (messageHandler.match(text)) {
                 return messageHandler.handle(text, this.config);
             }
         }
         if (this.config.mainConfig.minecraftToDiscord.general.enableDebugLogs) {
             if (text.getTextType() == Message.TextType.TRANSLATABLE) {
-                FDLink.LOGGER.error("[FDLink] Unhandled text \"{}\":{}", text.getKey(), text.getMessage());
+                FDLink.LOGGER.severe(String.format("[FDLink] Unhandled text \"%s\":%s", text.getKey(), text.getMessage()));
             } else {
-                FDLink.LOGGER.error("[FDLink] Unhandled text \"{}\"", text.getMessage());
+                FDLink.LOGGER.severe(String.format("[FDLink] Unhandled text \"%s\"", text.getMessage()));
             }
         }
         return null;
