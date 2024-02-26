@@ -1,15 +1,46 @@
 {
   "schemaVersion": 1,
   "id": "fdlink",
+  "version": "${version}",
+
   "name": "Fabric <-> Discord Link",
   "description": "A mod to link Minecraft and Discord chats for Fabric.",
-  "version": "${version}",
+  "contact": {
+    "homepage": "https://modrinth.com/mod/fabric-discord-link",
+    "sources": "https://github.com/arthurbambou/Fabric---Discord-Link",
+    "issues": "https://github.com/arthurbambou/Fabric---Discord-Link/issues",
+    "discord": "https://discord.gg/xTvWwzV"
+  },
+
+  "license": "MIT",
+  "icon": "assets/modid/icon.png",
+
   "environment": "server",
+  "entrypoints": {
+    "main": [
+      
+    ]
+  },
+  "mixins": [
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "fabric-api": "*",
+    "minecraft": "1.16.x",
+    "java": ">=8"
+  },
+
   "authors": [
-    "arthurbambou (aka. Cat Core)",
-    "Special Thanks to AlanFoster"
+    {
+      "name": "Cat Core (aka arthurbambou)",
+      "contact":{
+        "email": "arthur.koalas@free.fr"
+      }
+    }
   ],
   "contributors": [
+    "Special Thanks to AlanFoster",
     "Thedude7054",
     "yhr0x43",
     "BeeFox-sys",
@@ -20,11 +51,5 @@
     "kwvanderlinde",
     "dkolb",
     "matthias4217"
-  ],
-  "entrypoints": {},
-  "depends": {
-    "fabricloader": ">=0.12"
-  },
-  "mixins": [
   ]
 }

@@ -1,0 +1,58 @@
+package fr.catcore.fdlink;
+
+import fr.catcore.fdlink.api.discord.MessageSender;
+import fr.catcore.fdlink.config.ConfigHandler;
+import fr.catcore.fdlink.discord.bot.DiscordBot;
+import fr.catcore.fdlink.discord.webhook.DiscordWebhook;
+import net.fabricmc.api.DedicatedServerModInitializer;
+
+import java.util.logging.Logger;
+
+public class FDLink implements DedicatedServerModInitializer {
+
+    private static DiscordBot messageReceiver;
+    private static MessageSender messageSender;
+    public static Logger LOGGER = Logger.getLogger("FDLink");
+    public static Logger MESSAGE_LOGGER = Logger.getLogger("Discord->Minecraft");
+    private static boolean loaded = false;
+
+    @Override
+    public void onInitializeServer() {
+        initialize();
+    }
+
+    private static void initialize() {
+        ConfigHandler.ConfigHolder configHolder = ConfigHandler.getConfig();
+        messageReceiver = new DiscordBot(configHolder.getToken(), configHolder.getConfig());
+        if (configHolder.getConfig().mainConfig.webhook.url.isEmpty()) {
+            messageSender = messageReceiver;
+        } else {
+            LOGGER.info("Found a webhook URL, using Webhook instead of Bot to send message.");
+            if (configHolder.getConfig().mainConfig.chatChannels.isEmpty() && configHolder.getConfig().mainConfig.logChannels.isEmpty()) {
+                LOGGER.warn("Unable to find any channel id, only Minecraft->Discord will work, add a channel id to the config if this wasn't intended.");
+            }
+            messageSender = new DiscordWebhook(configHolder.getConfig().mainConfig.webhook.url, configHolder.getConfig(), messageReceiver);
+        }
+        loaded = true;
+    }
+
+    public static void regenConfig() {
+        ConfigHandler.ConfigHolder configHolder = ConfigHandler.getConfig();
+        messageReceiver = new DiscordBot(configHolder.getToken(), configHolder.getConfig());
+        if (configHolder.getConfig().mainConfig.webhook.url.isEmpty()) {
+            messageSender = messageReceiver;
+        } else {
+            messageSender = new DiscordWebhook(configHolder.getConfig().mainConfig.webhook.url, configHolder.getConfig(), messageReceiver);
+        }
+    }
+
+    public static MessageSender getMessageSender() {
+        if (!loaded) initialize();
+        return messageSender;
+    }
+
+    public static DiscordBot getMessageReceiver() {
+        if (!loaded) initialize();
+        return messageReceiver;
+    }
+}

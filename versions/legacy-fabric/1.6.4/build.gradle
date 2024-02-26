@@ -1,4 +1,0 @@
-archivesBaseName = "1.6.4"
-version = getSubprojectVersion()
-
-moduleDependencies(project)
